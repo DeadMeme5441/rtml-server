@@ -1,16 +1,15 @@
 import os
 import json
+from os import listdir
+from os.path import isfile, join
 from bson import json_util
 from fastapi import FastAPI, File, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from rtml_core import Document
-from pymongo import MongoClient
 
 app = FastAPI()
 
 origins = ["*"]
-
-path = os.system("pwd")
 
 app.add_middleware(
     CORSMiddleware,
@@ -20,11 +19,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-client = MongoClient(
-    "mongodb+srv://deadmeme:Reeve123@cluster0.mr6hw.mongodb.net/myFirstDatabase?retryWrites=true&w=majority"
-)
-
-main_db = client["rtml_db"]
+current_obj = {}
 
 
 @app.get("/")
@@ -35,52 +30,70 @@ async def hello_world():
 @app.post("/file/upload")
 async def upload_file(file: UploadFile = File(...)):
 
+    global current_obj
+
     contents = await file.read()
     with open(f"./files/{file.filename}", "wb") as out_file:
         out_file.write(contents)  # type: ignore
 
-    os.system("pwd")
-    print(file.filename)
-
-    document_obj = Document.document(f"./files/{file.filename}")
-
-    print(document_obj.asdict)
-
-    if main_db["files"].find_one({"file_name": file.filename}) is None:
-        main_db["files"].insert_one(document_obj.asdict)
-
-    else:
-        main_db["files"].delete_one({"file_name": file.filename})
-        main_db["files"].insert_one(document_obj.asdict)
+    current_obj = Document.document(f"./files/{file.filename}")
 
     return {"Result": "File Uploaded"}
+
+
+@app.post("/setfile/{file_name}")
+def set_current_file(file_name):
+
+    mypath = "./files/" + file_name + ".txt"
+    global current_obj
+    current_obj = Document.document(mypath)
+
+    return {"Current File": f"{file_name}"}
 
 
 @app.get("/files")
 async def retrieve_files():
 
+    mypath = "./files/"
     files = []
-    for file_obj in main_db["files"].find():
-        files.append(json.loads(json_util.dumps(file_obj["file_name"])))
+    for file_obj in [f for f in listdir(mypath) if isfile(join(mypath, f))]:
+        files.append(json.loads(json_util.dumps(file_obj.split(".")[0])))
 
     return {"files": files}
 
 
 @app.get("/api/{file_name}")
-def get_document_object(file_name):
+def get_document_object():
 
-    result = main_db["files"].find_one({"file_name": file_name})
-    return json.loads(json_util.dumps(result))  # type: ignore
+    global current_obj
+
+    if current_obj != {}:
+        result = current_obj.asdict  # type: ignore
+        return json.loads(json_util.dumps(result))  # type: ignore
+
+    else:
+        return {"Result": "No File Loaded"}
 
 
-@app.get("/api/search/{file_name}/{search_term}")
-def get_search_results(file_name, search_term):
+@app.get("/api/search/{search_term}")
+def get_search_results(search_term):
 
-    mypath = "./files/" + file_name + ".txt"
-    document_obj = Document.document(mypath)
-
-    search_results = document_obj.search_document(
+    search_results = current_obj.search_document(  # type: ignore
         search_type=["text", "tag", "subtag"], search_term=search_term
     )
 
     return search_results  # type: ignore
+
+
+@app.get("/api/delete/{file_name}")
+def delete_file(file_name):
+
+    mypath = "./files/" + file_name + ".txt"
+
+    if os.path.exists(mypath):
+        os.remove(mypath)
+
+    else:
+        print(f"{file_name} does not exist.")
+
+    return file_name
