@@ -4,20 +4,12 @@ from os import listdir
 from os.path import isfile, join
 from bson import json_util
 from fastapi import FastAPI, File, UploadFile
-from starlette.middleware.cors import CORSMiddleware
+from fastapi.middleware import Middleware
+from fastapi.middleware.cors import CORSMiddleware
 from rtml_core import Document
 
-app = FastAPI()
+app = FastAPI(debug=True)
 
-origins = ["http://localhost:3000", "localhost:3000", "http://13.233.94.116:3000"]
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=origins,
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
 current_obj = {}
 
 
@@ -96,3 +88,12 @@ def delete_file(file_name):
         print(f"{file_name} does not exist.")
 
     return file_name
+
+
+app = CORSMiddleware(
+    app=app,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
