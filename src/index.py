@@ -4,7 +4,7 @@ from os import listdir
 from os.path import isfile, join
 from bson import json_util
 from fastapi import FastAPI, File, UploadFile
-from fastapi.middleware.cors import CORSMiddleware
+from starlette.middleware.cors import CORSMiddleware
 from rtml_core import Document
 
 app = FastAPI()
