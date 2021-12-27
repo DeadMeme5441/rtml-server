@@ -10,6 +10,14 @@ from rtml_core import Document
 
 app = FastAPI(debug=True)
 
+current_obj = {}
+
+
+@app.get("/")
+async def hello_world():
+    return {"message": "Hello World"}
+
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
@@ -22,12 +30,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-current_obj = {}
-
-
-@app.get("/")
-async def hello_world():
-    return {"message": "Hello World"}
 
 
 @app.post("/file/upload")
