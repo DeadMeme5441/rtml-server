@@ -10,6 +10,18 @@ from rtml_core import Document
 
 app = FastAPI(debug=True)
 
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "http://localhost:3000",
+        "http://13.233.94.116:3000",
+        "http://127.0.0.1:3000",
+        "http://0.0.0.0:3000",
+    ],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 current_obj = {}
 
 
@@ -88,17 +100,3 @@ def delete_file(file_name):
         print(f"{file_name} does not exist.")
 
     return file_name
-
-
-app = CORSMiddleware(
-    app=app,
-    allow_origins=[
-        "http://localhost:3000",
-        "http://13.233.94.116:3000",
-        "http://127.0.0.1:3000",
-        "http://0.0.0.0:3000",
-    ],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
