@@ -94,6 +94,7 @@ app = CORSMiddleware(
     app=app,
     allow_origins=[
         "http://localhost:3000",
+        "http://13.233.94.116:3000/",
         "http://13.233.94.116:3000",
         "http://localhost",
         "http://127.0.0.1:3000",
