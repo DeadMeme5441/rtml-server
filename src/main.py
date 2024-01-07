@@ -63,7 +63,7 @@ def get_document_object():
     global current_obj
 
     if current_obj != {}:
-        result = current_obj.__dict__  # type: ignore
+        result = current_obj.__dict__()  # type: ignore
         return json.loads(json_util.dumps(result))  # type: ignore
 
     else:
